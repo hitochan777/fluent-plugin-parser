@@ -84,7 +84,7 @@ class Fluent::ParserOutput < Fluent::Output
             if @reserve_data and not @ignore_error
 
               t = time
-              handle_parsed(tag, record, time, {@key_name: record[@key_name]})
+              handle_parsed(tag, record, time, {@key_name => record[@key_name]})
             end
           end
         end
@@ -104,7 +104,7 @@ class Fluent::ParserOutput < Fluent::Output
               log.warn "pattern not match with data '#{raw_value}'" unless @suppress_parse_error_log
               if @reserve_data and not @ignore_error
                 t = time
-                handle_parsed(tag, record, time, {@key_name: record[@key_name]})
+                handle_parsed(tag, record, time, {@key_name => record[@key_name]})
               end
             end
           end
