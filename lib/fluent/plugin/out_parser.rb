@@ -13,6 +13,7 @@ class Fluent::ParserOutput < Fluent::Output
   config_param :hash_value_field, :string, :default => nil
   config_param :suppress_parse_error_log, :bool, :default => false
   config_param :time_parse, :bool, :default => true
+  config_param :ignore_error, :bool, :default => true
 
   attr_reader :parser
 
@@ -80,7 +81,8 @@ class Fluent::ParserOutput < Fluent::Output
             handle_parsed(tag, record, t, values)
           else
             log.warn "pattern not match with data '#{raw_value}'" unless @suppress_parse_error_log
-            if @reserve_data
+            if @reserve_data and not @ignore_error
+
               t = time
               handle_parsed(tag, record, time, {})
             end
@@ -100,7 +102,7 @@ class Fluent::ParserOutput < Fluent::Output
               handle_parsed(tag, record, t, values)
             else
               log.warn "pattern not match with data '#{raw_value}'" unless @suppress_parse_error_log
-              if @reserve_data
+              if @reserve_data and not @ignore_error
                 t = time
                 handle_parsed(tag, record, time, {})
               end
@@ -123,10 +125,11 @@ class Fluent::ParserOutput < Fluent::Output
     if values && @inject_key_prefix
       values = Hash[values.map{|k,v| [ @inject_key_prefix + k, v ]}]
     end
-    r = @hash_value_field ? {@hash_value_field => values} : values
-    if @reserve_data
-      r = r ? record.merge(r) : record
+    unless @reserve_data
+      record.delete(@key_name)
     end
+    r = @hash_value_field ? {@hash_value_field => values} : values
+    r = r ? record.merge(r) : record
     router.emit(tag, t, r)
   end
 
@@ -137,3 +140,4 @@ class Fluent::ParserOutput < Fluent::Output
     string.encode(temporal_encoding, original_encoding, replace_options).encode(original_encoding)
   end
 end
+
